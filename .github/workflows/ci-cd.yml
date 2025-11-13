@@ -23,15 +23,16 @@ jobs:
         npm test
 
 # --- CORRECTED AND MOST ROBUST VERSION ---
-- name: Build and push Docker image
-  uses: docker/build-push-action@v5
-  with:
-    context: .
-    push: true
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
     # Use an explicit YAML list for tags
-    tags:
-      - ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest
-      - ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:${{ github.sha }}
+        tags:
+          - ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest
+          - ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:${{ github.sha }}
+  
   deploy:
     needs: build-and-test # This job depends on the success of the previous one
     runs-on: ubuntu-latest
