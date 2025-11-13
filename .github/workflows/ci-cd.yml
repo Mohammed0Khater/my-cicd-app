@@ -6,7 +6,12 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest # Free hosted runner
+    runs-on: ubuntu-latest
+
+    # Define environment variables for the job
+    env:
+      # Create the tag list as a comma-separated string
+      IMAGE_TAGS: ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest,${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:${{ github.sha }}
 
     steps:
     - name: Checkout code
@@ -22,14 +27,19 @@ jobs:
         npm install
         npm test
 
-# --- CORRECTED AND MOST ROBUST VERSION ---
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
         push: true
-    # Use an explicit YAML list for tags
-        tags: '["${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest", "${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:${{ github.sha }}"]'
+        # Pass the pre-formatted environment variable
+        tags: ${{ env.IMAGE_TAGS }}
   deploy:
     needs: build-and-test # This job depends on the success of the previous one
     runs-on: ubuntu-latest
