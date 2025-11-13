@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-deployment
+spec:
+  replicas: 2 # Run 2 pods of our application
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-app-container
+        # The image name will be replaced by the CI/CD pipeline
+        image: YOUR_DOCKERHUB_USERNAME/my-cicd-app:latest 
+        ports:
+        - containerPort: 3000
