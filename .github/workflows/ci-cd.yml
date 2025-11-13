@@ -29,9 +29,7 @@ jobs:
         context: .
         push: true
     # Use an explicit YAML list for tags
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest
-              ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:${{ github.sha }}
-  
+        tags: '["${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest", "${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:${{ github.sha }}"]'
   deploy:
     needs: build-and-test # This job depends on the success of the previous one
     runs-on: ubuntu-latest
