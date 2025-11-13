@@ -1,0 +1,78 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest # Free hosted runner
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install dependencies and run tests
+      run: |
+        npm install
+        npm test
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest
+        # Also tag with the commit SHA for unique identification
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:${{ github.sha }}
+
+  deploy:
+    needs: build-and-test # This job depends on the success of the previous one
+    runs-on: ubuntu-latest
+    if: success() # Only run if the build and test job succeeded
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.2' # Use a specific kubectl version
+
+    - name: Deploy to Kubernetes
+      run: |
+        # In a real-world scenario, you would configure kubectl with a
+        # connection to your cloud cluster (e.g., GKE, EKS, AKS) using secrets.
+        # For this local minikube demo, this step would fail.
+        # We will simulate the deployment commands here for demonstration.
+        
+        echo "--- Simulating Deployment ---"
+        echo "kubectl apply -f k8s/deployment.yaml"
+        echo "kubectl apply -f k8s/service.yaml"
+        echo "kubectl set image deployment/my-app-deployment my-app-container=${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:${{ github.sha }}"
+        echo "--- End of Simulation ---"
+
+        # To make this actually work with a REAL cluster, you would:
+        # 1. Save your kubeconfig file as a GitHub secret (e.g., KUBE_CONFIG).
+        # 2. Add a step to write that secret to a file:
+        #    - name: Configure kubectl
+        #      run: |
+        #        mkdir -p $HOME/.kube
+        #        echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+        # 3. Then, the kubectl commands below would work.
+        
+        # The actual deployment commands for a real cluster:
+        # kubectl apply -f k8s/
+        # kubectl set image deployment/my-app-deployment my-app-container=${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:${{ github.sha }}
