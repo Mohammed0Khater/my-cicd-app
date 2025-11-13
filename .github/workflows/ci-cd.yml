@@ -33,10 +33,9 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest
-        # Also tag with the commit SHA for unique identification
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:${{ github.sha }}
-
+        tags: |
+      ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest
+      ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:${{ github.sha }}
   deploy:
     needs: build-and-test # This job depends on the success of the previous one
     runs-on: ubuntu-latest
